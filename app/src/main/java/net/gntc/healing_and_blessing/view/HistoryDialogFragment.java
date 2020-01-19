@@ -59,7 +59,11 @@ public class HistoryDialogFragment extends DialogFragment implements View.OnClic
     }
 
     public void setEvent(LifecycleOwner owner , SingleLiveEvent<Void> call , SingleLiveEvent<Boolean> callback ){
-        call.observe(owner , visibility -> show( ((AppCompatActivity)owner).getSupportFragmentManager() , "DIALOG" ));
+        call.observe(owner , visibility -> {
+            if(! isAdded() ){
+                show(((AppCompatActivity) owner).getSupportFragmentManager(), "DIALOG");
+            }
+        });
         callbackCommand = aBoolean -> callback.setValue(aBoolean);
     }
 
