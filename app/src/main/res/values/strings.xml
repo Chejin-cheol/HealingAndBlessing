@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Healing_And_Blessing</string>
+    <string
+        name="audio">http://g-cast.synology.me/gSermon/%1$s</string>
+    <string
+        name="dialog_description">이전 재생기록이 있습니다. 이어듣기를 하시겠습니까?</string>
+    <string
+        name="dialog_continue">이어듣기</string>
+    <string
+        name="dialog_first">처음부터듣기</string>
+</resources>

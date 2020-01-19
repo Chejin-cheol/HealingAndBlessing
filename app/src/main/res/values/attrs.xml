@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <declare-styleable name="SoundView">
+        <attr name="color" format="color"></attr>
+        <attr name="scale" format="float"></attr>
+    </declare-styleable>
+    <declare-styleable name="SoundViewWrapper">
+        <attr name="parent_color" format="color"></attr>
+        <attr name="parent_scale" format="float"></attr>
+    </declare-styleable>
+
+</resources>
