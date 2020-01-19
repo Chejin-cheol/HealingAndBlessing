@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.Manifest;
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         binding.setLifecycleOwner(this);
         viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
         binding.setViewModel(viewModel);
+        setLiveEvent();
 
         dialog = HistoryDialogFragment.newInstance();
         dialog.setEvent(this
@@ -60,6 +62,15 @@ public class MainActivity extends AppCompatActivity {
                         MY_PERMISSIONS_REQUEST_RECORD_AUDIO);
             }
         }
+    }
+
+    public void setLiveEvent(){
+        viewModel.getNetworkError().observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                Toast.makeText(MainActivity.this , message , Toast.LENGTH_SHORT ).show();
+            }
+        });
     }
 
     @Override

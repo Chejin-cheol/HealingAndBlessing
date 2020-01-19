@@ -32,13 +32,19 @@ public class MainViewModel extends AndroidViewModel {
     public MutableLiveData<Boolean> isLoading = new MutableLiveData<Boolean>();
     public ValidationLiveData<HnB> source = new ValidationLiveData<HnB>();
 
+    // 다이아로그 콜백
     private SingleLiveEvent<Boolean> dialogCallback = new SingleLiveEvent<Boolean>();
     public SingleLiveEvent<Boolean> getdialogCallback() {return dialogCallback;}
 
+    //다이아로그 호출
     private SingleLiveEvent<Void> dialogCall = new SingleLiveEvent<Void>();
     public SingleLiveEvent<Void> getDialogCall() {
         return dialogCall;
     }
+
+    // 네트워크에러
+    SingleLiveEvent<String> networkError = new SingleLiveEvent<String>();
+    public SingleLiveEvent<String>  getNetworkError(){return networkError;}
 
     public MainViewModel(@NonNull Application application) {
         super(application);
@@ -58,7 +64,7 @@ public class MainViewModel extends AndroidViewModel {
     public void setAudioService() {
         serviceManager = new AudioServiceManager(getApplication());
         serviceManager.bindService();
-        serviceManager.bindData(source, dialogCallback ,dialogCall);
+        serviceManager.bindData(source, dialogCallback ,dialogCall ,networkError);
         serviceManager.bindProgressCallback(
                 preprocess -> {
                     isLoading.setValue(true);

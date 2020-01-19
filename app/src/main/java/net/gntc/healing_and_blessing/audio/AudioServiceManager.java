@@ -6,24 +6,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
-import android.util.Log;
 
 import net.gntc.healing_and_blessing.R;
 import net.gntc.healing_and_blessing.room.AudioHistory;
 import net.gntc.healing_and_blessing.room.HnB;
 import net.gntc.healing_and_blessing.room.HnbRepository;
 import net.gntc.healing_and_blessing.room.async.Command;
-import net.gntc.healing_and_blessing.room.async.Promise;
 import net.gntc.healing_and_blessing.utils.DownloadUtil;
 import net.gntc.healing_and_blessing.utils.FileUtil;
+import net.gntc.healing_and_blessing.utils.NetworkUtil;
 import net.gntc.healing_and_blessing.viewmodel.SingleLiveEvent;
 import net.gntc.healing_and_blessing.viewmodel.ValidateObserver;
 import net.gntc.healing_and_blessing.viewmodel.ValidationLiveData;
 
 import java.io.IOException;
 
-import androidx.annotation.Nullable;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
 // 서비스 생성/제거 ,플레이어콜백 연결 , 플레이정보를 서비스로 전달
@@ -36,7 +33,8 @@ public class AudioServiceManager implements IAudioBinding {
     ValidationLiveData<HnB> _source;
     SingleLiveEvent<Void> _call;
     SingleLiveEvent<Boolean> _callback;
-    SingleLiveEvent<String> _toast;
+    SingleLiveEvent<String> _networkError;
+
 
     Observer<Boolean> callbackObserver;
     ValidateObserver<HnB> srcObserver;
@@ -81,16 +79,18 @@ public class AudioServiceManager implements IAudioBinding {
         this.completedCallback = completed;
     }
 
-    public void bindAmplitudeCallback(Command<Float> changed){
+    public void bindAmplitudeCallback(Command<Float> changed) {
         amplitudeCallback = changed;
     }
 
     // 소스 라이브 바인딩
-    public void bindData(ValidationLiveData<HnB> source, SingleLiveEvent<Boolean> callback, SingleLiveEvent<Void> call) {
+    public void bindData(ValidationLiveData<HnB> source, SingleLiveEvent<Boolean> callback
+            , SingleLiveEvent<Void> call, SingleLiveEvent<String> networkError) {
 
         this._source = source;
         this._callback = callback;
         this._call = call;
+        this._networkError = networkError;
         srcObserver = new ValidateObserver<HnB>() {
             @Override
             public void onChanged(HnB item, HnB old) {
@@ -132,23 +132,30 @@ public class AudioServiceManager implements IAudioBinding {
     public void setPlayer(String newName, int position) {
         try {
             if (!FileUtil.isExist(newName)) {
-                String key = newName.replace(_context.getFilesDir().getAbsolutePath() + "/", "");
-                String server = String.format(_context.getResources().getString(R.string.audio), key);
-                new DownloadUtil().DownloadAsync(
-                        server,
-                        newName,
-                        object -> {
-                            boolean resutl = ((boolean) object);
-                            if (resutl) {       // 다운로드 성공시 콜백
-                                try {
-                                    _service.setPlayer(newName, position);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                if (NetworkUtil.getNetworkState(_context)) {
+                    String key = newName.replace(_context.getFilesDir().getAbsolutePath() + "/", "");
+                    String server = String.format(_context.getResources().getString(R.string.audio), key);
+                    new DownloadUtil().DownloadAsync(
+                            server,
+                            newName,
+                            object -> {
+                                boolean resutl = ((boolean) object);
+                                if (resutl) {       // 다운로드 성공시 콜백
+                                    try {
+                                        _service.setPlayer(newName, position);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                } else {
+                                    _networkError.setValue(_context.getString(R.string.download_failed));
+                                    //다운로드 실패 예외처리
                                 }
-                            } else {
-                                //다운로드 실패 예외처리
-                            }
-                        });
+                            });
+                }
+                else{
+                    _networkError.setValue(_context.getString(R.string.network_disconneted));
+                }
+
             } else {
                 _service.setPlayer(newName, position);
             }
@@ -186,7 +193,7 @@ public class AudioServiceManager implements IAudioBinding {
 
     @Override
     public void onAmplitudeChanged(float radius) {
-        if( ! _isDialogOpen ){
+        if (!_isDialogOpen) {
             amplitudeCallback.execute(radius);
         }
     }
