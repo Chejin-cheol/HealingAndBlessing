@@ -115,6 +115,8 @@ public class MainViewModel extends AndroidViewModel {
                 });
     }
 
+    public void setAudioPermission(boolean permission){serviceManager.setAudioPermission( permission );}
+
     public void dispose() {
         serviceManager.unbindService();
     }

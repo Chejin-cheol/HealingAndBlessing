@@ -25,7 +25,7 @@ import androidx.lifecycle.Observer;
 
 // 서비스 생성/제거 ,플레이어콜백 연결 , 플레이정보를 서비스로 전달
 
-public class AudioServiceManager implements IAudioBinding {
+public class AudioServiceManager extends AudioBinding {
     Context _context;
     AudioService _service;
     ServiceConnection conn;
@@ -39,7 +39,7 @@ public class AudioServiceManager implements IAudioBinding {
     Observer<Boolean> callbackObserver;
     ValidateObserver<HnB> srcObserver;
 
-    HnbRepository repository;
+    private HnbRepository repository;
     private int _position = 0;
     private boolean _isDialogOpen = false;
 
@@ -166,12 +166,12 @@ public class AudioServiceManager implements IAudioBinding {
 
     @Override
     public void onPreprocess() {
-        preprocessCallback.execute(true);
+//        preprocessCallback.execute(true);
     }
 
     @Override
     public void onPrepared() {
-        preparedCallback.execute(false);
+        // preparedCallback.execute(false);
     }
 
     @Override
@@ -196,6 +196,10 @@ public class AudioServiceManager implements IAudioBinding {
         if (!_isDialogOpen) {
             amplitudeCallback.execute(radius);
         }
+    }
+
+    public  void setAudioPermission(boolean permission){
+        audioPermission = permission;
     }
 
     public void onResume() {

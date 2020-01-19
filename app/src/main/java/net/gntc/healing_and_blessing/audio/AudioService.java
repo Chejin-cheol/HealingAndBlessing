@@ -20,7 +20,7 @@ import androidx.annotation.Nullable;
 
 public class AudioService extends Service implements MediaPlayer.OnPreparedListener , MediaPlayer.OnCompletionListener, AudioManager.OnAudioFocusChangeListener{
     private final IBinder mBinder = new AsBinder();
-    private IAudioBinding _binding;
+    private AudioBinding _binding;
     private Context _context;
 
     private String _url = "";
@@ -58,7 +58,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
         return super.onUnbind(intent);
     }
 
-    public void setViewBinding(Context context, IAudioBinding vb){
+    public void setViewBinding(Context context, AudioBinding vb){
         _context = context;
         _binding = vb;
         setAudioFocus();
@@ -79,14 +79,17 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
         _checkPoint = position;
         if( ! _url.equals(url) )
         {
-            _binding.onPreprocess();
+ //           _binding.onPreprocess();
             if(_player == null)
             {
                 play(url);
             }
             else
             {
-                visualHandler.removeCallbacksAndMessages(null);
+                if( _binding.audioPermission ) {
+                    visualHandler.removeCallbacksAndMessages(null);
+                }
+
                 setTimerState(false);
                 releaseMP();
                 play(url);
@@ -171,28 +174,31 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 // audio interface
     @Override
     public void onPrepared(MediaPlayer mp) {
-        _binding.onPrepared();
+//        _binding.onPrepared();
         isCompleted = false;
         _player.seekTo(_checkPoint);
         mp.start();
         setTimerState(true);
 
-        visualHandler.post(new Runnable() {
-            @Override
-            public void run() {
+        if( _binding.audioPermission ){
+            visualHandler.post(new Runnable() {
+                @Override
+                public void run() {
                     try {
                         int maxAmplitude = getAudioOutputAmplitude(0.3);
-                        float radius = (float) Math.log10(Math.max(1, maxAmplitude )) * ScreenUtil.dp2px(_context, 60 );
-                        _binding.onAmplitudeChanged( radius );
+                        float radius = (float) Math.log10(Math.max(1, maxAmplitude)) * ScreenUtil.dp2px(_context, 60);
+                        _binding.onAmplitudeChanged(radius);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
 
-                    if(! isCompleted){
+                    if (!isCompleted) {
                         visualHandler.postDelayed(this, 300);
                     }
-            }
-        });
+                }
+            });
+        }
+
     }
 
     @Override

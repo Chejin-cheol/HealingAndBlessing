@@ -1,5 +1,7 @@
 package net.gntc.healing_and_blessing.view;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -8,8 +10,11 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.Manifest;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import net.gntc.healing_and_blessing.R;
@@ -31,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
+        setPermission();
 
         if (!PreferenceUtil.getBoolean(this, "init")) {
             ResourceManager resourceManager = new ResourceManager(this);
@@ -51,6 +56,18 @@ public class MainActivity extends AppCompatActivity {
                 , viewModel.getdialogCallback());
         dialog.setCancelable(false);
 
+    }
+
+    public void setLiveEvent(){
+        viewModel.getNetworkError().observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                Toast.makeText(MainActivity.this , message , Toast.LENGTH_SHORT ).show();
+            }
+        });
+    }
+
+    public void setPermission(){
         int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
         if (permissionCheck == PackageManager.PERMISSION_DENIED) {
             if (ContextCompat.checkSelfPermission(this,
@@ -64,14 +81,27 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void setLiveEvent(){
-        viewModel.getNetworkError().observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(String message) {
-                Toast.makeText(MainActivity.this , message , Toast.LENGTH_SHORT ).show();
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if(requestCode == MY_PERMISSIONS_REQUEST_RECORD_AUDIO){
+            for(int i=0; i < permissions.length ; i++){
+                if(grantResults[i] != PackageManager.PERMISSION_GRANTED){
+                    if(ActivityCompat.shouldShowRequestPermissionRationale(this,permissions[i]))
+                    {
+                        setPermission();
+                    }
+                    else{
+                        viewModel.setAudioPermission(false);
+                    }
+                }
+                else{
+                    viewModel.setAudioPermission(true);
+                }
             }
-        });
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
+
 
     @Override
     protected void onDestroy() {
@@ -84,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         viewModel.onResume();
     }
+
 
     private long backKeyPressedTime = 0;
     private Toast toast;
