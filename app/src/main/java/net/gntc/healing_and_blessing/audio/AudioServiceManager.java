@@ -36,6 +36,7 @@ public class AudioServiceManager implements IAudioBinding {
     ValidationLiveData<HnB> _source;
     SingleLiveEvent<Void> _call;
     SingleLiveEvent<Boolean> _callback;
+    SingleLiveEvent<String> _toast;
 
     Observer<Boolean> callbackObserver;
     ValidateObserver<HnB> srcObserver;

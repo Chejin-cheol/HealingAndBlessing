@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProviders;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import net.gntc.healing_and_blessing.R;
 import net.gntc.healing_and_blessing.databinding.ActivityMainBinding;
@@ -49,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         dialog.setCancelable(false);
 
         int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
-        if(permissionCheck== PackageManager.PERMISSION_DENIED){
+        if (permissionCheck == PackageManager.PERMISSION_DENIED) {
             if (ContextCompat.checkSelfPermission(this,
                     Manifest.permission.RECORD_AUDIO)
                     != PackageManager.PERMISSION_GRANTED) {
@@ -71,5 +72,23 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         viewModel.onResume();
+    }
+
+    private long backKeyPressedTime = 0;
+    private Toast toast;
+
+    @Override
+    public  void onBackPressed() {
+        if (System.currentTimeMillis() > backKeyPressedTime + 2000) {
+            backKeyPressedTime = System.currentTimeMillis();
+            toast = Toast.makeText(this,
+                    getString(R.string.back_press_alert), Toast.LENGTH_SHORT);
+            toast.show();
+            return;
+        }
+        if (System.currentTimeMillis() <= backKeyPressedTime + 2000) {
+            this.finish();
+            toast.cancel();
+        }
     }
 }
