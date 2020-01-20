@@ -1,5 +1,7 @@
 package net.gntc.healing_and_blessing.utils;
 
+import android.os.AsyncTask;
+
 import net.gntc.healing_and_blessing.room.async.Command;
 
 import java.io.File;
@@ -8,13 +10,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.SocketException;
 import java.net.URL;
 
 public class DownloadUtil {
 
     public void DownloadAsync( String server , String local , Command c)
     {
-        new DownloadThread(server,local ,c).start();
+//        new DownloadThread(server,local ,c).start();
+        new DownloadTask(c).execute(server,local);
     }
 
     class DownloadThread extends Thread{
@@ -57,6 +61,55 @@ public class DownloadUtil {
                 command.execute(false);
             }
             command.execute(true);
+        }
+    }
+
+
+    class DownloadTask extends AsyncTask<String, Void, Boolean>{
+        Command command;
+        public DownloadTask(Command command){
+            this.command = command;
+        }
+        @Override
+        protected Boolean doInBackground(String... strings) {
+
+            String serverUrl = strings[0];
+            String localUrl = strings[1];
+
+            try {
+                URL url = new URL(serverUrl);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                int read = 0;
+                int len = conn.getContentLength();
+                byte[] bytes = new byte[len];
+                InputStream is = conn.getInputStream();
+
+                File file = new File(localUrl);
+                FileOutputStream fos = new FileOutputStream(file);
+                while (true){
+                    read = is.read(bytes);
+                    if(read < 0) {
+                        break;
+                    }
+                    fos.write(bytes,0, read);
+                }
+                is.close();
+                fos.close();
+                conn.disconnect();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+                return  false;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return  false;
+            }
+            return  true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            super.onPostExecute(aBoolean);
+            command.execute(aBoolean);
         }
     }
 }

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.util.Log;
 
 import net.gntc.healing_and_blessing.R;
 import net.gntc.healing_and_blessing.room.AudioHistory;
@@ -138,9 +139,8 @@ public class AudioServiceManager implements AudioBinding {
                     new DownloadUtil().DownloadAsync(
                             server,
                             newName,
-                            object -> {
-                                boolean resutl = ((boolean) object);
-                                if (resutl) {       // 다운로드 성공시 콜백
+                            (Command<Boolean>) result -> {
+                                if (result) {       // 다운로드 성공시 콜백
                                     try {
                                         _service.setPlayer(newName, position);
                                     } catch (IOException e) {
@@ -148,6 +148,7 @@ public class AudioServiceManager implements AudioBinding {
                                     }
                                 } else {
                                     _networkError.setValue(_context.getString(R.string.download_failed));
+                                    FileUtil.removeFile(newName);
                                     //다운로드 실패 예외처리
                                 }
                             });

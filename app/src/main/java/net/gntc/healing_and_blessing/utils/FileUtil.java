@@ -35,4 +35,10 @@ public class FileUtil {
         return new File(path).exists();
     }
 
+    public static void removeFile(String path){
+        File file = new File(path);
+        if(file.exists()){
+            file.delete();
+        }
+    }
 }
