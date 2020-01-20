@@ -28,21 +28,11 @@ public class MainActivity extends AppCompatActivity {
     MainViewModel viewModel;
     ActivityMainBinding binding;
 
-    public final String healing_path = "shinyu";
-    public final String blessing_path = "10min";
-    final int MY_PERMISSIONS_REQUEST_RECORD_AUDIO = 1;
     HistoryDialogFragment dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setPermission();
-
-        if (!PreferenceUtil.getBoolean(this, "init")) {
-            ResourceManager resourceManager = new ResourceManager(this);
-            resourceManager.decompressFromAssets("data.zip", "data");
-            FileUtil.dirChecker(this.getFilesDir() + "/" + blessing_path);  //없으면 생성
-        }
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         binding.setLifecycleOwner(this);
@@ -55,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
                 , viewModel.getDialogCall()
                 , viewModel.getdialogCallback());
         dialog.setCancelable(false);
-
     }
 
     public void setLiveEvent(){
@@ -66,37 +55,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-    public void setPermission(){
-        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
-        if (permissionCheck == PackageManager.PERMISSION_DENIED) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.RECORD_AUDIO},
-                        MY_PERMISSIONS_REQUEST_RECORD_AUDIO);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if(requestCode == MY_PERMISSIONS_REQUEST_RECORD_AUDIO){
-            for(int i=0; i < permissions.length ; i++){
-                if(grantResults[i] != PackageManager.PERMISSION_GRANTED){
-                    if(ActivityCompat.shouldShowRequestPermissionRationale(this,permissions[i]))
-                    {
-                        setPermission();
-                    }
-                    else{
-                        PreferenceUtil.setBoolean(this, Manifest.permission.RECORD_AUDIO ,false);
-                    }
-                }
-                else{
-                    PreferenceUtil.setBoolean(this, Manifest.permission.RECORD_AUDIO ,true);
-                }
-            }
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
 
     @Override
     protected void onDestroy() {
