@@ -1,5 +1,6 @@
 package net.gntc.healing_and_blessing.audio;
 
+import android.Manifest;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -10,6 +11,8 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
+import net.gntc.healing_and_blessing.utils.FileUtil;
+import net.gntc.healing_and_blessing.utils.PreferenceUtil;
 import net.gntc.healing_and_blessing.utils.ScreenUtil;
 
 import java.io.IOException;
@@ -18,13 +21,14 @@ import java.util.TimerTask;
 
 import androidx.annotation.Nullable;
 
-public class AudioService extends Service implements MediaPlayer.OnPreparedListener , MediaPlayer.OnCompletionListener, AudioManager.OnAudioFocusChangeListener{
+public class AudioService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, AudioManager.OnAudioFocusChangeListener {
+    private final static int TIME_PERIOD = 1000;
     private final IBinder mBinder = new AsBinder();
     private AudioBinding _binding;
     private Context _context;
 
+    private boolean auioRecordAvailable;
     private String _url = "";
-    private final static int TIME_PERIOD = 1000;
     private boolean isCompleted = false;
     private int _checkPoint = 0;
 
@@ -50,7 +54,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public IBinder onBind(Intent intent) {
         visualHandler = new Handler();
-        return mBinder ;
+        return mBinder;
     }
 
     @Override
@@ -58,66 +62,45 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
         return super.onUnbind(intent);
     }
 
-    public void setViewBinding(Context context, AudioBinding vb){
+    public void setViewBinding(Context context, AudioBinding vb) {
         _context = context;
         _binding = vb;
+        auioRecordAvailable = PreferenceUtil.getBoolean(_context, Manifest.permission.RECORD_AUDIO);
         setAudioFocus();
     }
 
-//    // player methods
-//    public void beforeBindPlay(){
-//        if(_player != null) {
-//            visualHandler.removeCallbacksAndMessages(null);
-//            if(_player.isPlaying())
-//            {
-//                _player.stop();
-//            }
-//        }
-//    }
-
-    public void setPlayer( String url , int position) throws IOException {
+    public void setPlayer(String url, int position) throws IOException {
         _checkPoint = position;
-        if( ! _url.equals(url) )
-        {
- //           _binding.onPreprocess();
-            if(_player == null)
-            {
+        if (!_url.equals(url)) {
+            if (_player == null) {
                 play(url);
-            }
-            else
-            {
-                if( _binding.audioPermission ) {
-                    visualHandler.removeCallbacksAndMessages(null);
-                }
+            } else {
+                visualHandler.removeCallbacksAndMessages(null);
 
                 setTimerState(false);
                 releaseMP();
                 play(url);
             }
             _url = url;
-        }
-        else
-        {
-            if(! isCompleted){
-                if(_player.isPlaying()){
+        } else {
+            if (!isCompleted) {
+                if (_player.isPlaying()) {
                     _player.pause();
-                }else{
+                } else {
                     _player.start();
                 }
             }
         }
     }
 
-    private void setAudioFocus(){
-        audioManager = (AudioManager) ( _context).getSystemService(AUDIO_SERVICE);
+    private void setAudioFocus() {
+        audioManager = (AudioManager) (_context).getSystemService(AUDIO_SERVICE);
         audioManager.requestAudioFocus(this,
                 AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN);
     }
 
-
-
-    private void play(String url){
+    private void play(String url) {
         try {
             _player = new MediaPlayer();
             _player.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -146,32 +129,30 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
         }
     }
 
-
     private int getAudioOutputAmplitude(double durationInSeconds) throws InterruptedException {
         int minValue = 0;
         int maxValue = 0;
-        if( _player != null ){
+        if (_player != null) {
             _audioCapture = new AudioCapture(AudioCapture.TYPE_PCM, 1024, _player.getAudioSessionId());
             _audioCapture.start();
-            Thread.sleep((long)(durationInSeconds * 1000));
-            int [] mVizData;
+            Thread.sleep((long) (durationInSeconds * 1000));
+            int[] mVizData;
             mVizData = _audioCapture.getFormattedData(1, 1);
             _audioCapture.release();
 
-            for (int value:mVizData){
-                Log.i("진폭"  ,( value) +"" );
-                if (value<minValue){
+            for (int value : mVizData) {
+                Log.i("진폭", (value) + "");
+                if (value < minValue) {
                     minValue = value;
-                } else if (value>maxValue){
+                } else if (value > maxValue) {
                     maxValue = value;
                 }
             }
         }
-        return maxValue-minValue;
+        return maxValue - minValue;
     }
 
-
-// audio interface
+    // audio interface
     @Override
     public void onPrepared(MediaPlayer mp) {
 //        _binding.onPrepared();
@@ -180,7 +161,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
         mp.start();
         setTimerState(true);
 
-        if( _binding.audioPermission ){
+        if (auioRecordAvailable) {
             visualHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -198,7 +179,6 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
                 }
             });
         }
-
     }
 
     @Override
@@ -209,22 +189,22 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 
     @Override
     public void onAudioFocusChange(int focusChange) {
-        Log.i("포커스" , focusChange+"");
+        Log.i("포커스", focusChange + "");
         switch (focusChange) {
             case (AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK):
                 break;
             case (AudioManager.AUDIOFOCUS_LOSS_TRANSIENT):
-                Log.i("살짝 잃음" , "잃음");
+                Log.i("살짝 잃음", "잃음");
                 _player.pause();
                 break;
 
             case (AudioManager.AUDIOFOCUS_LOSS):
-                Log.i("아주잃음" , "잃음");
+                Log.i("아주잃음", "잃음");
                 _player.pause();
                 break;
 
             case (AudioManager.AUDIOFOCUS_GAIN):
-                Log.i("얻음" , "얻음");
+                Log.i("얻음", "얻음");
                 // Return the volume to normal and resume if paused.
                 _player.start();
                 break;
@@ -234,25 +214,23 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
     }
 
 
-// Focuse lose exception
-    public void onResume(){
-        if( _player != null &&  ! isCompleted ){
-            if( ! _player.isPlaying() ){
+    // Focuse lose exception
+    public void onResume() {
+        if (_player != null && !isCompleted) {
+            if (!_player.isPlaying()) {
                 _player.start();
                 setAudioFocus();
             }
         }
     }
 
-
     // timer정의 :room 디비로 데이터 전송
-    public void setTimerState( boolean state ){
-        if( state )
-        {
+    public void setTimerState(boolean state) {
+        if (state) {
             _task = new TimerTask() {
                 @Override
                 public void run() {
-                    if(_player != null) {
+                    if (_player != null) {
                         if (_player.isPlaying()) {
                             _binding.onProgress(_player.getCurrentPosition());
                         }
@@ -260,21 +238,20 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
                 }
             };
             //타이머
-            _timer.schedule(_task,0, TIME_PERIOD);
-        }
-        else
-        {
-            if( _task != null){
+            _timer.schedule(_task, 0, TIME_PERIOD);
+        } else {
+            if (_task != null) {
                 _task.cancel();
                 _task = null;
             }
         }
     }
 
-    public boolean isCompleted(){ return isCompleted;}
+    public boolean isCompleted() {
+        return isCompleted;
+    }
 
-
-    public void dispose(){
+    public void dispose() {
         setTimerState(false);
         _timer.cancel();
         _timer = null;

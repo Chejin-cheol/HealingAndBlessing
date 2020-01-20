@@ -70,14 +70,9 @@ public class MainActivity extends AppCompatActivity {
     public void setPermission(){
         int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
         if (permissionCheck == PackageManager.PERMISSION_DENIED) {
-            if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.RECORD_AUDIO)
-                    != PackageManager.PERMISSION_GRANTED) {
-
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.RECORD_AUDIO},
                         MY_PERMISSIONS_REQUEST_RECORD_AUDIO);
-            }
         }
     }
 
@@ -91,11 +86,11 @@ public class MainActivity extends AppCompatActivity {
                         setPermission();
                     }
                     else{
-                        viewModel.setAudioPermission(false);
+                        PreferenceUtil.setBoolean(this, Manifest.permission.RECORD_AUDIO ,false);
                     }
                 }
                 else{
-                    viewModel.setAudioPermission(true);
+                    PreferenceUtil.setBoolean(this, Manifest.permission.RECORD_AUDIO ,true);
                 }
             }
         }

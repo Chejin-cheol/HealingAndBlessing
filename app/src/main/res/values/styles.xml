@@ -12,8 +12,8 @@
 
     </style>
 
-    <style name="AppTheme.healing_ripple">
-        <item name="colorControlHighlight">#008577</item>
+    <style name="AppTheme.dialog_button_ripple">
+        <item name="colorControlHighlight">#D8D8D8</item>
     </style>
 
     <style name="AppTheme.blessing_ripple">

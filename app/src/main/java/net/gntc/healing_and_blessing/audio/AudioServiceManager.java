@@ -25,7 +25,7 @@ import androidx.lifecycle.Observer;
 
 // 서비스 생성/제거 ,플레이어콜백 연결 , 플레이정보를 서비스로 전달
 
-public class AudioServiceManager extends AudioBinding {
+public class AudioServiceManager implements AudioBinding {
     Context _context;
     AudioService _service;
     ServiceConnection conn;
@@ -196,10 +196,6 @@ public class AudioServiceManager extends AudioBinding {
         if (!_isDialogOpen) {
             amplitudeCallback.execute(radius);
         }
-    }
-
-    public  void setAudioPermission(boolean permission){
-        audioPermission = permission;
     }
 
     public void onResume() {
