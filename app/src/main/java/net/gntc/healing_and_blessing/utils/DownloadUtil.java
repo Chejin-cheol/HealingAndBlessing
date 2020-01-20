@@ -15,10 +15,10 @@ import java.net.URL;
 
 public class DownloadUtil {
 
-    public void DownloadAsync( String server , String local , Command c)
+    public void DownloadAsync( String server , String local ,Command d , Command r)
     {
 //        new DownloadThread(server,local ,c).start();
-        new DownloadTask(c).execute(server,local);
+        new DownloadTask(d,r).execute(server,local);
     }
 
     class DownloadThread extends Thread{
@@ -66,10 +66,19 @@ public class DownloadUtil {
 
 
     class DownloadTask extends AsyncTask<String, Void, Boolean>{
-        Command command;
-        public DownloadTask(Command command){
-            this.command = command;
+        Command<Boolean> onDownloading;
+        Command<Boolean> onResult;
+        public DownloadTask(Command<Boolean> onDownloading,Command<Boolean> onResult){
+            this.onDownloading = onDownloading;
+            this.onResult = onResult;
         }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            onDownloading.execute(true);
+        }
+
         @Override
         protected Boolean doInBackground(String... strings) {
 
@@ -109,7 +118,8 @@ public class DownloadUtil {
         @Override
         protected void onPostExecute(Boolean aBoolean) {
             super.onPostExecute(aBoolean);
-            command.execute(aBoolean);
+            onDownloading.execute(false);
+            onResult.execute(aBoolean);
         }
     }
 }

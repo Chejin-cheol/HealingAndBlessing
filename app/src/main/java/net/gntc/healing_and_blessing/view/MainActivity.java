@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     ActivityMainBinding binding;
 
     HistoryDialogFragment dialog;
+    ProgressFragment progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
         binding.setLifecycleOwner(this);
         viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
         binding.setViewModel(viewModel);
+        binding.church.setClipToOutline(true);
         setLiveEvent();
 
         dialog = HistoryDialogFragment.newInstance();
@@ -45,6 +47,12 @@ public class MainActivity extends AppCompatActivity {
                 , viewModel.getDialogCall()
                 , viewModel.getdialogCallback());
         dialog.setCancelable(false);
+
+        progress = ProgressFragment.newInstance();
+        progress.setEvent(this
+                , viewModel.getIsLoading());
+        dialog.setCancelable(false);
+
     }
 
     public void setLiveEvent(){

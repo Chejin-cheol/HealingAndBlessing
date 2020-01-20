@@ -44,7 +44,7 @@ public class AudioServiceManager implements AudioBinding {
     private int _position = 0;
     private boolean _isDialogOpen = false;
 
-    Command preprocessCallback, preparedCallback, progressCallback, completedCallback;
+    Command<Boolean> downloading ;
     Command<Float> amplitudeCallback;
 
     public AudioServiceManager(Context context) {
@@ -73,11 +73,8 @@ public class AudioServiceManager implements AudioBinding {
                 Context.BIND_AUTO_CREATE);
     }
 
-    public void bindProgressCallback(Command preprocess, Command preppared, Command progress, Command completed) {
-        this.preprocessCallback = preprocess;
-        this.preparedCallback = preppared;
-        this.progressCallback = progress;
-        this.completedCallback = completed;
+    public void bindDownloadCallback(Command<Boolean> downloading ) {
+        this.downloading = downloading;
     }
 
     public void bindAmplitudeCallback(Command<Float> changed) {
@@ -139,6 +136,7 @@ public class AudioServiceManager implements AudioBinding {
                     new DownloadUtil().DownloadAsync(
                             server,
                             newName,
+                            downloading,
                             (Command<Boolean>) result -> {
                                 if (result) {       // 다운로드 성공시 콜백
                                     try {
@@ -167,12 +165,10 @@ public class AudioServiceManager implements AudioBinding {
 
     @Override
     public void onPreprocess() {
-//        preprocessCallback.execute(true);
     }
 
     @Override
     public void onPrepared() {
-        // preparedCallback.execute(false);
     }
 
     @Override
@@ -183,13 +179,11 @@ public class AudioServiceManager implements AudioBinding {
                 _source.getValue().getPath(),
                 position,
                 1);
-        progressCallback.execute(position);
     }
 
     @Override
     public void onCompleted() {
         repository.clearHistory(Integer.parseInt(_source.getValue().getGubun()));
-        completedCallback.execute(null);
     }
 
     @Override

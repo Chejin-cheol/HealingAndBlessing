@@ -28,9 +28,10 @@ public class MainViewModel extends AndroidViewModel {
     //view data
     public MutableLiveData<Float> healRadius = new MutableLiveData<Float>();
     public MutableLiveData<Float> blessingRadius = new MutableLiveData<Float>();
-
-    public MutableLiveData<Boolean> isLoading = new MutableLiveData<Boolean>();
     public ValidationLiveData<HnB> source = new ValidationLiveData<HnB>();
+
+    private SingleLiveEvent<Boolean> isLoading = new SingleLiveEvent<Boolean>();
+    public SingleLiveEvent<Boolean> getIsLoading() {return isLoading;}
 
     // 다이아로그 콜백
     private SingleLiveEvent<Boolean> dialogCallback = new SingleLiveEvent<Boolean>();
@@ -65,18 +66,9 @@ public class MainViewModel extends AndroidViewModel {
         serviceManager = new AudioServiceManager(getApplication());
         serviceManager.bindService();
         serviceManager.bindData(source, dialogCallback ,dialogCall ,networkError);
-        serviceManager.bindProgressCallback(
-                preprocess -> {
-                    isLoading.setValue(true);
-                },
-                prepared -> {
-                    isLoading.setValue(false);
-                },
-                progress -> {
-                },
-                complete -> {
-                }
-        );
+        serviceManager.bindDownloadCallback(downloading ->{
+            isLoading.setValue(downloading);
+        });
         serviceManager.bindAmplitudeCallback(new Command<Float>() {
             @Override
             public void execute(Float f) {
