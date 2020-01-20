@@ -26,9 +26,8 @@ public class ZipManager {
 
             while ((ze = zin.getNextEntry()) != null) {
                 String zePath = ze.getName();
-
                 if(ze.isDirectory()) {
-                    FileUtil.dirChecker(ze.getName());
+                    FileUtil.dirChecker(toDir +"/"+ze.getName());
                 }
                 else if(zePath.contains("/")) {
                     String[] dirs =zePath.split("/");

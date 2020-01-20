@@ -33,7 +33,6 @@ public class SettingActivity extends AppCompatActivity {
         if (!PreferenceUtil.getBoolean(this, "init")) {
             ResourceManager resourceManager = new ResourceManager(this);
             resourceManager.decompressFromAssets("data.zip", "data");
-            FileUtil.dirChecker(this.getFilesDir() + "/10min" );  //없으면 생성
         }
 
         ActivitySettingBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_setting);
