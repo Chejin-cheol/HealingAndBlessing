@@ -128,6 +128,7 @@ public class AudioServiceManager implements AudioBinding {
     }
 
     public void setPlayer(String newName, int position) {
+        Log.i("클릭", "클릭");
         try {
             if (!FileUtil.isExist(newName)) {
                 if (NetworkUtil.getNetworkState(_context)) {

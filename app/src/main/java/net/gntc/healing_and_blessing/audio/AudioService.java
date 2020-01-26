@@ -76,7 +76,6 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
                 play(url);
             } else {
                 visualHandler.removeCallbacksAndMessages(null);
-
                 setTimerState(false);
                 releaseMP();
                 play(url);
@@ -106,6 +105,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
             _player.setAudioStreamType(AudioManager.STREAM_MUSIC);
             _player.setDataSource(url);
             _player.setOnPreparedListener(this);
+            _player.setOnCompletionListener(this);
             _player.prepareAsync();
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
@@ -155,7 +155,6 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
     // audio interface
     @Override
     public void onPrepared(MediaPlayer mp) {
-//        _binding.onPrepared();
         isCompleted = false;
         _player.seekTo(_checkPoint);
         mp.start();
@@ -184,6 +183,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onCompletion(MediaPlayer mp) {
         isCompleted = true;
+        _url = "";
         _binding.onCompleted();
     }
 
