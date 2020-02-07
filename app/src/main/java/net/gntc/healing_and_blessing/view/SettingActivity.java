@@ -44,34 +44,30 @@ public class SettingActivity extends AppCompatActivity {
     }
 
 
-    public void setPermission(){
+    public void setPermission() {
         int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
         if (permissionCheck == PackageManager.PERMISSION_DENIED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.RECORD_AUDIO},
                     MY_PERMISSIONS_REQUEST_RECORD_AUDIO);
-        }
-        else{
+        } else {
             intent();
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if(requestCode == MY_PERMISSIONS_REQUEST_RECORD_AUDIO){
-            for(int i=0; i < permissions.length ; i++){
-                if(grantResults[i] != PackageManager.PERMISSION_GRANTED){
-                    if(ActivityCompat.shouldShowRequestPermissionRationale(this,permissions[i]))
-                    {
+        if (requestCode == MY_PERMISSIONS_REQUEST_RECORD_AUDIO) {
+            for (int i = 0; i < permissions.length; i++) {
+                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(this, permissions[i])) {
                         setPermission();
-                    }
-                    else{
-                        PreferenceUtil.setBoolean(this, Manifest.permission.RECORD_AUDIO ,false);
+                    } else {
+                        PreferenceUtil.setBoolean(this, Manifest.permission.RECORD_AUDIO, false);
                         intent();
                     }
-                }
-                else{
-                    PreferenceUtil.setBoolean(this, Manifest.permission.RECORD_AUDIO ,true);intent();
+                } else {
+                    PreferenceUtil.setBoolean(this, Manifest.permission.RECORD_AUDIO, true);
                     intent();
                 }
             }
@@ -80,8 +76,8 @@ public class SettingActivity extends AppCompatActivity {
     }
 
 
-    void intent(){
-        Intent intent = new Intent(this , MainActivity.class);
+    void intent() {
+        Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         finish();
         startActivity(intent);

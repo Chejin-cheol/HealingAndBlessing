@@ -79,7 +79,8 @@
                     android:scaleType="fitCenter"
                     android:scaleX="0.6"
                     android:scaleY="0.6"
-                    android:src="@drawable/healing" />
+                    android:src="@drawable/healing"
+                    app:selected="@{viewModel.healingItemEffect}"/>
 
             </RelativeLayout>
 
@@ -107,7 +108,8 @@
                     android:scaleType="fitCenter"
                     android:scaleX="0.6"
                     android:scaleY="0.6"
-                    android:src="@drawable/blessing" />
+                    android:src="@drawable/blessing"
+                    app:selected="@{viewModel.blessingItemEffect}"/>
             </RelativeLayout>
 
         </LinearLayout>

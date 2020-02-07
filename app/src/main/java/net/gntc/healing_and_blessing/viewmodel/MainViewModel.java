@@ -28,29 +28,47 @@ public class MainViewModel extends AndroidViewModel {
     //view data
     public MutableLiveData<Float> healRadius = new MutableLiveData<Float>();
     public MutableLiveData<Float> blessingRadius = new MutableLiveData<Float>();
+
+    public MutableLiveData<Boolean> healingItemEffect = new MutableLiveData<Boolean>();
+    public MutableLiveData<Boolean> blessingItemEffect = new MutableLiveData<Boolean>();
+
     public ValidationLiveData<HnB> source = new ValidationLiveData<HnB>();
 
     private SingleLiveEvent<Boolean> isLoading = new SingleLiveEvent<Boolean>();
-    public SingleLiveEvent<Boolean> getIsLoading() {return isLoading;}
+
+    public SingleLiveEvent<Boolean> getIsLoading() {
+        return isLoading;
+    }
 
     // 다이아로그 콜백
     private SingleLiveEvent<Boolean> dialogCallback = new SingleLiveEvent<Boolean>();
-    public SingleLiveEvent<Boolean> getdialogCallback() {return dialogCallback;}
+
+    public SingleLiveEvent<Boolean> getdialogCallback() {
+        return dialogCallback;
+    }
+
+    private Observer<Boolean> _dialogCallbackObserver;
 
     //다이아로그 호출
     private SingleLiveEvent<Void> dialogCall = new SingleLiveEvent<Void>();
+
     public SingleLiveEvent<Void> getDialogCall() {
         return dialogCall;
     }
 
     // 네트워크에러
     SingleLiveEvent<String> networkError = new SingleLiveEvent<String>();
-    public SingleLiveEvent<String>  getNetworkError(){return networkError;}
+
+    public SingleLiveEvent<String> getNetworkError() {
+        return networkError;
+    }
 
     public MainViewModel(@NonNull Application application) {
         super(application);
         _application = application;
         isLoading.setValue(false);
+        healingItemEffect.setValue(false);
+        blessingItemEffect.setValue(false);
 
         if (!PreferenceUtil.getBoolean(application, "init")) {
             repository = new HnbRepository(application);
@@ -58,32 +76,29 @@ public class MainViewModel extends AndroidViewModel {
         } else {
             repository = new HnbRepository(application);
         }
-        setAudioService();
 
+        setAudioService();
     }
 
     public void setAudioService() {
         serviceManager = new AudioServiceManager(getApplication());
         serviceManager.bindService();
-        serviceManager.bindData(source, dialogCallback ,dialogCall ,networkError);
-        serviceManager.bindDownloadCallback(downloading ->{
+        serviceManager.bindData(source, dialogCallback, dialogCall, networkError);
+        serviceManager.bindDownloadCallback(downloading -> {
             isLoading.setValue(downloading);
         });
-        serviceManager.bindAmplitudeCallback(new Command<Float>() {
-            @Override
-            public void execute(Float f) {
-                int key = Integer.parseInt(source.getValue().getGubun());
-                if(key == HEALING){
-                    healRadius.setValue(f);
-                }
-                else{
-                    blessingRadius.setValue(f);
-                }
+        serviceManager.bindAmplitudeCallback(f -> {
+            int key = Integer.parseInt(source.getValue().getGubun());
+            if (key == HEALING) {
+                healRadius.setValue(f);
+            } else {
+                blessingRadius.setValue(f);
             }
         });
     }
 
     public void onClick(int gubun) {
+        setClickEffect(gubun);
         repository.getCount(gubun)      // select count 질의
                 .then((count) -> {
                     Promise p = new Promise();
@@ -106,11 +121,23 @@ public class MainViewModel extends AndroidViewModel {
                     return true;
                 });
     }
+
     public void dispose() {
         serviceManager.unbindService();
     }
 
     public void onResume() {
         serviceManager.onResume();
+    }
+
+    private void setClickEffect(int gubun) {
+        //클릭 효과
+        if (gubun == HEALING) {
+            healingItemEffect.setValue( ! healingItemEffect.getValue() );
+            blessingItemEffect.setValue(false);
+        } else {
+            blessingItemEffect.setValue( ! blessingItemEffect.getValue() );
+            healingItemEffect.setValue(false);
+        }
     }
 }
