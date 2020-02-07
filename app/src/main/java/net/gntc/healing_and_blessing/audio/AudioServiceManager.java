@@ -44,8 +44,10 @@ public class AudioServiceManager implements AudioBinding {
     private int _position = 0;
     private boolean _isDialogOpen = false;
 
-    Command<Boolean> downloading ;
+    Command<Boolean> downloading;
     Command<Float> amplitudeCallback;
+    Command<Void> onPrepared, onCompleted;
+    Command<Boolean> onPlayPause;
 
     public AudioServiceManager(Context context) {
         this._context = context;
@@ -73,7 +75,7 @@ public class AudioServiceManager implements AudioBinding {
                 Context.BIND_AUTO_CREATE);
     }
 
-    public void bindDownloadCallback(Command<Boolean> downloading ) {
+    public void bindDownloadCallback(Command<Boolean> downloading) {
         this.downloading = downloading;
     }
 
@@ -127,8 +129,13 @@ public class AudioServiceManager implements AudioBinding {
         _callback.observeForever(callbackObserver);
     }
 
+    public void bindMediaCallback(Command prepared, Command<Boolean> playPuse, Command completed) {
+        onPrepared = prepared;
+        onPlayPause = playPuse;
+        onCompleted = completed;
+    }
+
     public void setPlayer(String newName, int position) {
-        Log.i("클릭", "클릭");
         try {
             if (!FileUtil.isExist(newName)) {
                 if (NetworkUtil.getNetworkState(_context)) {
@@ -151,8 +158,7 @@ public class AudioServiceManager implements AudioBinding {
                                     //다운로드 실패 예외처리
                                 }
                             });
-                }
-                else{
+                } else {
                     _networkError.setValue(_context.getString(R.string.network_disconneted));
                 }
 
@@ -165,11 +171,15 @@ public class AudioServiceManager implements AudioBinding {
     }
 
     @Override
-    public void onPreprocess() {
+    public void onPrepared() {
+        if (onPrepared != null)
+            onPrepared.execute(null);
     }
 
     @Override
-    public void onPrepared() {
+    public void onPlayPause(boolean value) {
+        if (onPlayPause != null)
+            onPlayPause.execute(value);
     }
 
     @Override
@@ -185,6 +195,9 @@ public class AudioServiceManager implements AudioBinding {
     @Override
     public void onCompleted() {
         repository.clearHistory(Integer.parseInt(_source.getValue().getGubun()));
+
+        if (onCompleted != null)
+            onCompleted.execute(null);
     }
 
     @Override

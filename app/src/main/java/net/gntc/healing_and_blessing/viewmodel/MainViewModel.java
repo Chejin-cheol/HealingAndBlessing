@@ -1,5 +1,6 @@
 package net.gntc.healing_and_blessing.viewmodel;
 
+import android.Manifest;
 import android.app.Application;
 import android.util.Log;
 
@@ -95,10 +96,29 @@ public class MainViewModel extends AndroidViewModel {
                 blessingRadius.setValue(f);
             }
         });
+
+        //권한이 있는경우 적용하지 않는다.
+        if (!PreferenceUtil.getBoolean(_application, Manifest.permission.RECORD_AUDIO))
+            serviceManager.bindMediaCallback(
+                    o -> { // prepared
+                        setClickEffect(
+                                Integer.parseInt(source.getValue().getGubun()),
+                                true);
+                    },
+                    b -> {
+                        setClickEffect(
+                                Integer.parseInt(source.getValue().getGubun()),
+                                b);
+                    },
+                    o -> { //completed
+                        setClickEffect(
+                                Integer.parseInt(source.getValue().getGubun()),
+                                false);
+                    });
     }
 
     public void onClick(int gubun) {
-        setClickEffect(gubun);
+
         repository.getCount(gubun)      // select count 질의
                 .then((count) -> {
                     Promise p = new Promise();
@@ -130,13 +150,13 @@ public class MainViewModel extends AndroidViewModel {
         serviceManager.onResume();
     }
 
-    private void setClickEffect(int gubun) {
+    private void setClickEffect(int gubun, boolean value) {
         //클릭 효과
         if (gubun == HEALING) {
-            healingItemEffect.setValue( ! healingItemEffect.getValue() );
+            healingItemEffect.setValue(value);
             blessingItemEffect.setValue(false);
         } else {
-            blessingItemEffect.setValue( ! blessingItemEffect.getValue() );
+            blessingItemEffect.setValue(value);
             healingItemEffect.setValue(false);
         }
     }

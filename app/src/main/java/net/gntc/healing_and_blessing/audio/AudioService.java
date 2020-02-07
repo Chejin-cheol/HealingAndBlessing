@@ -83,6 +83,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
             _url = url;
         } else {
             if (!isCompleted) {
+                _binding.onPlayPause(!_player.isPlaying());
                 if (_player.isPlaying()) {
                     _player.pause();
                 } else {
@@ -141,7 +142,6 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
             _audioCapture.release();
 
             for (int value : mVizData) {
-                Log.i("진폭", (value) + "");
                 if (value < minValue) {
                     minValue = value;
                 } else if (value > maxValue) {
@@ -157,6 +157,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
     public void onPrepared(MediaPlayer mp) {
         isCompleted = false;
         _player.seekTo(_checkPoint);
+        _binding.onPrepared();
         mp.start();
         setTimerState(true);
 
